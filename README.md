@@ -18,7 +18,7 @@ From **Vietnam** 🇻🇳 with passion.
 - **Chess Engine/Logic:** Chess.js & Chessboard.js
 
 ## 📜 License
-This project is open-source under the **MIT License**.
+This project is open-source under the **GNU General Public License v3.0**.
 
 ---
 *Developed in Vietnam. Let's play and enjoy the game!*
