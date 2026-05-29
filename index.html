@@ -2,125 +2,113 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Shadowchess - Open Source Chess Platform</title>
+    <title>Shadowchess - Nền Tảng Cờ Vua</title>
     <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css">
     <style>
-        :root { --bg-main: #161512; --bg-panel: #262421; --text-main: #bababa; --accent: #629924; --accent-hover: #73b32b; --light-square: #f0d9b5; --dark-square: #b58863; }
+        :root { --bg-main: #312e2b; --bg-panel: #262421; --text-main: #bababa; --accent: #81b64c; --accent-hover: #95d053; --light-square: #ebecd0; --dark-square: #739552; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: var(--bg-main); color: var(--text-main); margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
         
-        .top-bar { position: absolute; top: 15px; right: 20px; display: flex; gap: 10px; align-items: center; }
-        .lang-select { background: #201e1b; color: #fff; border: 1px solid #3c3a37; padding: 5px 10px; border-radius: 4px; cursor: pointer; }
-
-        .shadow-brand { font-size: 36px; font-weight: 800; color: #fff; text-align: center; margin-bottom: 25px; text-transform: uppercase; letter-spacing: 1px; }
+        .shadow-brand { font-size: 32px; font-weight: 900; color: #fff; text-align: center; margin-bottom: 20px; text-transform: uppercase; letter-spacing: -0.5px; }
         .shadow-brand span { color: var(--accent); }
         
-        .container { display: flex; gap: 20px; background: var(--bg-panel); padding: 25px; border-radius: 12px; box-shadow: 0 15px 40px rgba(0,0,0,0.6); }
+        .container { display: flex; gap: 20px; background: var(--bg-panel); padding: 20px; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         
-        #board { width: 480px; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+        /* Bố cục khu vực bàn cờ có thanh Eval */
+        .board-container { display: flex; gap: 15px; }
+        
+        /* THANH ĐÁNH GIÁ (EVAL BAR) */
+        .eval-container { width: 24px; height: 480px; background-color: #403d39; border-radius: 4px; overflow: hidden; position: relative; display: flex; flex-direction: column; }
+        .eval-black { width: 100%; background-color: #403d39; transition: height 0.5s ease; position: relative; z-index: 1; }
+        .eval-white { width: 100%; background-color: #fff; transition: height 0.5s ease; position: absolute; bottom: 0; z-index: 2; height: 50%; }
+        .eval-score { position: absolute; z-index: 3; width: 100%; text-align: center; font-size: 11px; font-weight: bold; padding: 4px 0; }
+        .score-white { bottom: 0; color: #403d39; }
+        .score-black { top: 0; color: #fff; }
+
+        #board { width: 480px; box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
         .board-b72b1 .white-1e1d7 { background-color: var(--light-square) !important; }
         .board-b72b1 .black-3c85d { background-color: var(--dark-square) !important; }
 
-        .sidebar { width: 340px; display: flex; flex-direction: column; gap: 12px; }
-        .timer { font-size: 28px; font-weight: 700; font-family: monospace; background: #201e1b; padding: 10px 15px; border-radius: 5px; color: #fff; display: flex; justify-content: space-between; border: 1px solid #3c3a37; }
+        .sidebar { width: 320px; display: flex; flex-direction: column; gap: 12px; }
         
-        input, select { padding: 12px; background: #201e1b; border: 1px solid #3c3a37; color: white; border-radius: 6px; font-size: 14px; outline: none; width: 100%; box-sizing: border-box; }
+        .timer { font-size: 24px; font-weight: 700; font-family: monospace; background: #1b1918; padding: 10px 15px; border-radius: 4px; color: #fff; display: flex; justify-content: space-between; border: 1px solid #3c3a37; align-items: center;}
+        .player-info { display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: bold; font-family: sans-serif;}
+        
+        input, select { padding: 12px; background: #1b1918; border: 1px solid #3c3a37; color: white; border-radius: 4px; font-size: 14px; outline: none; width: 100%; box-sizing: border-box; }
         input:focus { border-color: var(--accent); }
         
-        .btn { padding: 12px; border: none; border-radius: 6px; font-weight: 700; font-size: 15px; cursor: pointer; transition: 0.2s; text-transform: uppercase; width: 100%; }
-        .btn-play { background: var(--accent); color: white; box-shadow: 0 4px 0 #456c1a; }
-        .btn-play:hover { background: var(--accent-hover); transform: translateY(2px); box-shadow: 0 2px 0 #456c1a; }
-        .btn-secondary { background: #3c3a37; color: #fff; box-shadow: 0 4px 0 #201e1b; }
-        .btn-secondary:hover { background: #4a4844; transform: translateY(2px); box-shadow: 0 2px 0 #201e1b; }
+        .btn { padding: 14px; border: none; border-radius: 4px; font-weight: 900; font-size: 16px; cursor: pointer; transition: 0.2s; width: 100%; text-shadow: 0 1px 1px rgba(0,0,0,0.2); }
+        .btn-play { background: var(--accent); color: white; box-shadow: 0 5px 0 #5c8530; }
+        .btn-play:hover { background: var(--accent-hover); transform: translateY(2px); box-shadow: 0 3px 0 #5c8530; }
+        .btn-secondary { background: #403d39; color: #c3c3c3; box-shadow: 0 5px 0 #2b2927; }
+        .btn-secondary:hover { background: #4b4844; transform: translateY(2px); box-shadow: 0 3px 0 #2b2927; color: #fff;}
         
-        .tab-container { display: flex; background: #201e1b; border-radius: 6px; margin-bottom: 15px; border: 1px solid #3c3a37; }
-        .tab-btn { flex: 1; padding: 12px; border: none; font-weight: bold; cursor: pointer; background: transparent; color: #888; transition: 0.2s; }
-        .tab-btn.active { background: #3c3a37; color: #fff; }
-
-        .panel-box { background: #201e1b; padding: 15px; border-radius: 6px; font-size: 14px; border: 1px solid #3c3a37; }
-        .panel-box h4 { margin: 0 0 10px 0; color: #fff; font-size: 14px; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 8px 5px; text-align: left; border-bottom: 1px solid #3c3a37; }
-        th { color: #888; font-weight: normal; }
-
-        .flex-row { display: flex; gap: 10px; align-items: center; }
+        .panel-box { background: #201e1b; padding: 15px; border-radius: 4px; font-size: 14px; border: 1px solid #3c3a37; }
+        .panel-box h4 { margin: 0 0 12px 0; color: #fff; font-size: 16px; font-weight: bold;}
+        
+        .engine-text { font-family: monospace; color: var(--accent); font-size: 13px; line-height: 1.5; background: #1b1918; padding: 10px; border-radius: 4px; border: 1px solid #3c3a37;}
     </style>
 </head>
 <body>
 
-    <div class="top-bar">
-        <select class="lang-select" id="lang-selector" onchange="changeLanguage()">
-            <option value="vi">🇻🇳 Tiếng Việt</option>
-            <option value="en">🇬🇧 English</option>
-        </select>
-    </div>
-
-    <div id="auth" class="container" style="flex-direction: column; width: 360px; padding: 30px;">
+    <div id="auth" class="container" style="flex-direction: column; width: 340px; padding: 30px;">
         <div class="shadow-brand">SHADOW<span>CHESS</span></div>
-        
-        <div class="tab-container">
-            <button class="tab-btn active" id="tab-login" onclick="switchTab('login')" data-i18n="loginTab">Đăng Nhập</button>
-            <button class="tab-btn" id="tab-register" onclick="switchTab('register')" data-i18n="registerTab">Đăng Ký</button>
-        </div>
-
-        <input id="user" placeholder="Tên tài khoản / Username" data-i18n-placeholder="username">
-        <input id="pass" type="password" placeholder="Mật khẩu / Password" data-i18n-placeholder="password">
-        
-        <button class="btn btn-play" id="action-btn" onclick="submitAuth()" style="margin-top: 10px;" data-i18n="loginBtn">ĐĂNG NHẬP</button>
-        
-        <div style="text-align: center; margin: 10px 0; color: #666; font-size: 12px;" data-i18n="or">HOẶC</div>
-
-        <button class="btn btn-secondary" onclick="playAsGuest()" data-i18n="guestBtn">CHƠI KHÁCH (GUEST)</button>
+        <input id="user" placeholder="Tên tài khoản (không dấu cách)">
+        <input id="pass" type="password" placeholder="Mật khẩu">
+        <button class="btn btn-play" id="action-btn" onclick="submitAuth()" style="margin-top: 10px;">ĐĂNG NHẬP / ĐĂNG KÝ</button>
+        <div style="text-align: center; margin: 15px 0; color: #666; font-size: 12px; font-weight: bold;">HOẶC</div>
+        <button class="btn btn-secondary" onclick="playAsGuest()">CHƠI KHÁCH</button>
     </div>
 
     <div id="app" class="container" style="display:none">
-        <div>
-            <div id="opp-time" class="timer" style="margin-bottom: 10px;">
-                <span id="opp-name" data-i18n="opponent">Đối thủ</span> <span id="opp-clock">--:--</span>
+        
+        <div class="board-container">
+            <div class="eval-container">
+                <div class="eval-score score-black" id="eval-b" style="display:none;"></div>
+                <div class="eval-white" id="eval-fill"></div>
+                <div class="eval-score score-white" id="eval-w">0.0</div>
             </div>
-            <div id="board"></div>
-            <div id="my-time" class="timer" style="margin-top: 10px;">
-                <span id="my-name">Người chơi</span> <span id="my-clock">--:--</span>
+
+            <div>
+                <div id="opp-time" class="timer" style="margin-bottom: 10px;">
+                    <div class="player-info">⬛ <span id="opp-name">Đối thủ</span></div> 
+                    <span id="opp-clock">10:00</span>
+                </div>
+                <div id="board"></div>
+                <div id="my-time" class="timer" style="margin-top: 10px;">
+                    <div class="player-info">⬜ <span id="my-name">Người chơi</span></div> 
+                    <span id="my-clock">10:00</span>
+                </div>
             </div>
         </div>
 
         <div class="sidebar">
-            <div class="panel-box flex-row">
-                <span style="font-size: 13px; color: #888;" data-i18n="theme">Giao diện:</span>
-                <select id="theme-selector" onchange="changeTheme()" style="flex: 1; padding: 6px;">
-                    <option value="wood" data-i18n="themeWood">Gỗ Cổ Điển</option>
-                    <option value="green" data-i18n="themeGreen">Xanh Lá (Lichess)</option>
-                    <option value="blue" data-i18n="themeBlue">Biển Xanh</option>
+            <div class="panel-box">
+                <h4>Đấu Trực Tuyến</h4>
+                <select id="gameType" style="margin-bottom: 12px;">
+                    <option value="bullet">Bullet (1 phút)</option>
+                    <option value="blitz" selected>Blitz (3 phút)</option>
+                    <option value="rapid">Rapid (10 phút)</option>
                 </select>
-            </div>
-
-            <div class="panel-box" id="online-controls">
-                <h4 style="color: var(--accent);" data-i18n="playOnline">Đấu Trực Tuyến</h4>
-                <select id="gameType" style="margin-bottom: 10px;">
-                    <option value="bullet">Bullet (1 min)</option>
-                    <option value="blitz" selected>Blitz (3 min)</option>
-                    <option value="rapid">Rapid (10 min)</option>
-                </select>
-                <button class="btn btn-play" id="findBtn" onclick="findMatch()" data-i18n="findMatch">TÌM TRẬN</button>
+                <button class="btn btn-play" id="findBtn" onclick="findMatch()">TÌM TRẬN ĐẤU MỚI</button>
             </div>
 
             <div class="panel-box">
-                <h4 style="color: var(--text-main);" data-i18n="playComputer">Đấu Với Máy</h4>
-                <div class="flex-row" style="margin-bottom: 10px;">
-                    <select id="botLevel">
-                        <option value="1" data-i18n="botLevel1">Cấp 1 (Cơ bản)</option>
-                        <option value="2" data-i18n="botLevel2">Cấp 2 (Trung bình)</option>
-                    </select>
-                    <select id="botTime">
-                        <option value="unlimited" data-i18n="timeUnlimited">Không thời gian</option>
-                        <option value="5">5 Phút</option>
-                        <option value="10">10 Phút</option>
-                    </select>
-                </div>
-                <button class="btn btn-secondary" onclick="startBotGame()" data-i18n="startBot">BẮT ĐẦU ĐÁNH VỚI MÁY</button>
+                <h4>Đấu Với Máy</h4>
+                <select id="botLevel" style="margin-bottom: 12px;">
+                    <option value="1">Máy Tập Sự (Elo 400)</option>
+                    <option value="5">Máy Nghiệp Dư (Elo 1200)</option>
+                    <option value="10">Máy Chuyên Nghiệp (Elo 2000)</option>
+                </select>
+                <button class="btn btn-secondary" onclick="startBotGame()">ĐÁNH VỚI MÁY</button>
             </div>
 
-            <div class="panel-box" id="analysis" style="display:none;">
-                <span data-i18n="status">Trạng thái:</span> <strong id="status-text" style="color:var(--accent)">-</strong>
+            <div class="panel-box" id="analysis" style="display:block;">
+                <h4>Phân Tích Bằng Stockfish 16</h4>
+                <div class="engine-text">
+                    Điểm số: <strong id="sf-score" style="color: #fff;">0.00</strong> <br>
+                    Chiều sâu: <span id="sf-depth">0</span> nước <br>
+                    Nước tốt nhất: <strong id="sf-bestmove" style="color: #fff;">-</strong>
+                </div>
             </div>
         </div>
     </div>
@@ -131,115 +119,132 @@
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 
     <script>
-        // --- TỪ ĐIỂN ĐA NGÔN NGỮ ---
-        const dict = {
-            vi: {
-                loginTab: "Đăng Nhập", registerTab: "Đăng Ký", loginBtn: "ĐĂNG NHẬP", registerBtn: "ĐĂNG KÝ",
-                or: "HOẶC", guestBtn: "CHƠI KHÁCH (GUEST)", opponent: "Đối thủ", theme: "Bàn cờ:",
-                themeWood: "Gỗ Cổ Điển", themeGreen: "Xanh Lá (Lichess)", themeBlue: "Biển Xanh",
-                playOnline: "Đấu Trực Tuyến", findMatch: "TÌM TRẬN", playComputer: "Đấu Với Máy",
-                botLevel1: "Cấp 1 (Cơ bản)", botLevel2: "Cấp 2 (Trung bình)", timeUnlimited: "Không tính giờ",
-                startBot: "ĐÁNH VỚI MÁY", status: "Trạng thái:", statusWaiting: "Đang tìm...", statusPlaying: "Trong trận đấu",
-                errInput: "Vui lòng nhập đủ thông tin và không dùng dấu cách!", guestName: "Khách",
-                turnWhite: "Lượt Trắng", turnBlack: "Lượt Đen", checkmate: "Chiếu bí! Hết cờ.", draw: "Hòa cờ!"
-            },
-            en: {
-                loginTab: "Login", registerTab: "Register", loginBtn: "LOGIN", registerBtn: "REGISTER",
-                or: "OR", guestBtn: "PLAY AS GUEST", opponent: "Opponent", theme: "Theme:",
-                themeWood: "Classic Wood", themeGreen: "Green (Lichess)", themeBlue: "Ocean Blue",
-                playOnline: "Play Online", findMatch: "FIND MATCH", playComputer: "Play Computer",
-                botLevel1: "Level 1 (Basic)", botLevel2: "Level 2 (Intermediate)", timeUnlimited: "Unlimited Time",
-                startBot: "PLAY COMPUTER", status: "Status:", statusWaiting: "Searching...", statusPlaying: "Match in progress",
-                errInput: "Please enter valid details without spaces!", guestName: "Guest",
-                turnWhite: "White to move", turnBlack: "Black to move", checkmate: "Checkmate! Game over.", draw: "Draw!"
-            }
-        };
+        let me = null, isPlayingBot = false, socket = io(), room = null, myColor = 'w';
+        
+        // --- KHỞI TẠO BỘ NÃO STOCKFISH (CHẠY NGẦM) ---
+        let engine = null;
+        try {
+            const stockfishCode = "importScripts('https://cdnjs.cloudflare.com/ajax/libs/stockfish.js/10.0.0/stockfish.js');";
+            const blob = new Blob([stockfishCode], {type: 'application/javascript'});
+            engine = new Worker(URL.createObjectURL(blob));
+            
+            engine.onmessage = function(event) {
+                let line = event.data;
+                // Lấy nước đi tốt nhất
+                if(line.includes("bestmove")) {
+                    let move = line.split(" ")[1];
+                    $('#sf-bestmove').text(move);
+                }
+                // Lấy điểm số đánh giá và chiều sâu
+                if(line.includes("info depth")) {
+                    let depthMatch = line.match(/depth (\d+)/);
+                    if(depthMatch) $('#sf-depth').text(depthMatch[1]);
 
-        let currentLang = 'vi';
-        function changeLanguage() {
-            currentLang = $('#lang-selector').val();
-            $('[data-i18n]').each(function() { $(this).text(dict[currentLang][$(this).attr('data-i18n')]); });
-            if(currentMode === 'login') $('#action-btn').text(dict[currentLang].loginBtn);
-            else $('#action-btn').text(dict[currentLang].registerBtn);
-            updateStatus();
+                    let scoreMatch = line.match(/score cp (-?\d+)/);
+                    let mateMatch = line.match(/score mate (-?\d+)/);
+                    
+                    let evalScore = 0;
+                    let displayScore = "";
+
+                    if(mateMatch) {
+                        let mate = parseInt(mateMatch[1]);
+                        displayScore = (mate > 0 ? "+M" : "-M") + Math.abs(mate);
+                        evalScore = mate > 0 ? 1000 : -1000;
+                    } else if(scoreMatch) {
+                        evalScore = parseInt(scoreMatch[1]) / 100;
+                        // Góc nhìn của Trắng
+                        if (game.turn() === 'b') evalScore = -evalScore; 
+                        displayScore = (evalScore > 0 ? "+" : "") + evalScore.toFixed(1);
+                    }
+
+                    // Cập nhật giao diện
+                    $('#sf-score').text(displayScore);
+                    updateEvalBar(evalScore, displayScore);
+                }
+            };
+        } catch(e) {
+            console.log("Không thể tải Stockfish:", e);
+        }
+
+        function analyzePosition() {
+            if(!engine) return;
+            engine.postMessage("position fen " + game.fen());
+            engine.postMessage("go depth 12"); // Giới hạn chiều sâu để máy tính bạn không bị giật lag
+        }
+
+        // --- CẬP NHẬT THANH EVAL BAR ---
+        function updateEvalBar(score, displayText) {
+            // Chuyển đổi điểm số (-10 đến +10) thành phần trăm chiều cao (0% - 100%)
+            let percent = 50 + (score * 5); 
+            if(percent > 95) percent = 95;
+            if(percent < 5) percent = 5;
+            
+            $('#eval-fill').css('height', percent + '%');
+
+            if(score >= 0) {
+                $('#eval-w').text(displayText).show();
+                $('#eval-b').hide();
+            } else {
+                $('#eval-b').text(Math.abs(score).toFixed(1)).show();
+                $('#eval-w').hide();
+            }
         }
 
         // --- HỆ THỐNG TÀI KHOẢN ---
-        let currentMode = 'login', me = null, isPlayingBot = false;
-        
-        function switchTab(mode) {
-            currentMode = mode;
-            $('.tab-btn').removeClass('active');
-            if(mode === 'login') { $('#tab-login').addClass('active'); $('#action-btn').text(dict[currentLang].loginBtn); } 
-            else { $('#tab-register').addClass('active'); $('#action-btn').text(dict[currentLang].registerBtn); }
-        }
-
         function submitAuth() {
             let username = $('#user').val().trim(), password = $('#pass').val().trim();
-            if(!username || !password || username.includes(' ')) return alert(dict[currentLang].errInput);
-
-            let apiPath = currentMode === 'login' ? '/api/login' : '/api/register';
-            fetch(apiPath, {
+            if(!username || !password || username.includes(' ')) return alert("Nhập hợp lệ và không dấu cách!");
+            fetch('/api/login', {
                 method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({username, password})
             }).then(r => r.json()).then(data => {
-                if(data.error) alert(data.error);
-                else if(currentMode === 'login') { me = data.user; enterGame(); } 
-                else switchTab('login');
+                if(data.error) {
+                    // Tự động chuyển qua đăng ký nếu tài khoản chưa tồn tại
+                    fetch('/api/register', {
+                        method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({username, password})
+                    }).then(r => r.json()).then(regData => {
+                        if(regData.error) alert(regData.error); else alert("Tạo thành công, bấm Đăng nhập lại!");
+                    });
+                } else {
+                    me = data.user; enterGame();
+                }
             });
         }
 
         function playAsGuest() {
-            me = { username: dict[currentLang].guestName + '_' + Math.floor(Math.random() * 9000), elo_blitz: '?' };
+            me = { username: 'Khách_' + Math.floor(Math.random() * 9000), elo_blitz: '?' };
             enterGame();
         }
 
         function enterGame() {
             $('#auth').hide(); $('#app').css('display', 'flex');
             $('#my-name').text(`${me.username} (${me.elo_blitz})`);
-            board = Chessboard('board', { draggable: true, position: 'start', onDragStart: onDragStart, onDrop: onDrop });
+            board = Chessboard('board', { 
+                draggable: true, position: 'start', 
+                onDragStart: onDragStart, onDrop: onDrop,
+                pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png'
+            });
             game = new Chess();
+            analyzePosition(); // Phân tích nước đi đầu tiên
         }
 
-        function changeTheme() {
-            let t = $('#theme-selector').val(), root = document.documentElement;
-            if(t === 'wood') { root.style.setProperty('--light-square', '#f0d9b5'); root.style.setProperty('--dark-square', '#b58863'); }
-            if(t === 'green') { root.style.setProperty('--light-square', '#ffffdd'); root.style.setProperty('--dark-square', '#86a666'); }
-            if(t === 'blue') { root.style.setProperty('--light-square', '#dee3e6'); root.style.setProperty('--dark-square', '#8ca2ad'); }
-        }
-
-        // --- LOGIC CHƠI VỚI MÁY (BOT) ---
+        // --- LOGIC CHƠI VỚI MÁY ---
         function startBotGame() {
             isPlayingBot = true;
             game.reset(); board.start();
-            $('#opp-name').text("Computer (Lvl " + $('#botLevel').val() + ")");
-            
-            let timeSet = $('#botTime').val();
-            $('#my-clock').text(timeSet === 'unlimited' ? '--:--' : timeSet + ':00');
-            $('#opp-clock').text(timeSet === 'unlimited' ? '--:--' : timeSet + ':00');
-            
-            $('#analysis').show(); updateStatus();
+            $('#opp-name').text("Máy Stockfish Lvl " + $('#botLevel').val());
+            analyzePosition();
         }
 
         function makeBotMove() {
             let possibleMoves = game.moves();
             if (possibleMoves.length === 0) return;
-            
-            let move;
-            let level = $('#botLevel').val();
-            
-            if (level === "2") {
-                // Máy Trung Bình: Ưu tiên ăn quân nếu có thể
-                let captures = possibleMoves.filter(m => m.includes('x'));
-                if(captures.length > 0) move = captures[Math.floor(Math.random() * captures.length)];
-            }
-            if (!move) move = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
-            
-            game.move(move); board.position(game.fen()); updateStatus();
+            // Bot cơ bản (sẽ nâng cấp liên kết Stockfish ở bản sau)
+            let move = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
+            game.move(move); board.position(game.fen());
+            analyzePosition();
         }
 
         // --- LOGIC CỜ VUA CHUNG ---
-        let socket = io(), room = null, myColor = 'w';
-
         function onDragStart (source, piece) {
             if (game.game_over()) return false;
             if ((myColor === 'w' && piece.search(/^b/) !== -1) || (myColor === 'b' && piece.search(/^w/) !== -1)) return false;
@@ -248,26 +253,20 @@
         function onDrop(source, target) {
             let move = game.move({from: source, to: target, promotion: 'q'});
             if (move === null) return 'snapback';
-            updateStatus();
+            
+            analyzePosition(); // Kích hoạt Stockfish tính toán ngay khi đi cờ
             
             if(isPlayingBot) {
-                window.setTimeout(makeBotMove, 400); // Tốc độ phản hồi của Bot
+                window.setTimeout(makeBotMove, 500);
             } else if (room) {
                 socket.emit('makeMove', {roomId: room, move, fen: game.fen()});
             }
         }
 
-        function updateStatus() {
-            if (game.in_checkmate()) $('#status-text').text(dict[currentLang].checkmate);
-            else if (game.in_draw()) $('#status-text').text(dict[currentLang].draw);
-            else $('#status-text').text(game.turn() === 'w' ? dict[currentLang].turnWhite : dict[currentLang].turnBlack);
-        }
-
-        // --- LOGIC ONLINE ---
         function findMatch() {
-            if(isPlayingBot) { isPlayingBot = false; game.reset(); board.start(); }
-            $('#findBtn').text(dict[currentLang].statusWaiting).prop('disabled', true);
-            socket.emit('findMatch', { username: me.username, elo: me.elo_blitz || 1000, type: $('#gameType').val() });
+            isPlayingBot = false; game.reset(); board.start();
+            $('#findBtn').text("Đang tìm trận...").prop('disabled', true);
+            socket.emit('findMatch', { username: me.username, elo: 1000, type: $('#gameType').val() });
         }
         
         socket.on('matchFound', (data) => {
@@ -275,15 +274,11 @@
             socket.emit('joinRoom', room);
             game.reset(); board.start(); board.orientation(myColor === 'w' ? 'white' : 'black');
             $('#opp-name').text(data.opponent.username);
-            $('#findBtn').text(dict[currentLang].findMatch).prop('disabled', false);
-            $('#analysis').show();
-            updateStatus();
+            $('#findBtn').text("TÌM TRẬN ĐẤU MỚI").prop('disabled', false);
+            analyzePosition();
         });
         
-        socket.on('opponentMove', (data) => { game.move(data.move); board.position(data.fen); updateStatus(); });
-        
-        // Cài đặt ngôn ngữ mặc định khi mở web
-        changeLanguage();
+        socket.on('opponentMove', (data) => { game.move(data.move); board.position(data.fen); analyzePosition(); });
     </script>
 </body>
 </html>
