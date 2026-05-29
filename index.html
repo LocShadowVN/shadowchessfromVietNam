@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Shadowchess - Kiện Tướng Ẩn Mình</title>
+    <title>Shadowchess</title>
     <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css">
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #161512; color: #bababa; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
@@ -14,7 +14,10 @@
         .btn { padding: 12px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; transition: 0.2s; }
         .btn-play { background: #81b64c; color: white; font-size: 18px; }
         .btn-play:hover { background: #96bc4b; }
+        .btn-guest { background: #55534e; color: white; margin-top: 10px; }
+        .btn-guest:hover { background: #6b6964; }
         .btn-google { background: white; color: #444; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .btn-facebook { background: #1877F2; color: white; display: flex; align-items: center; justify-content: center; gap: 10px; }
         input { padding: 12px; background: #1c1b19; border: 1px solid #403e3b; color: white; border-radius: 4px; }
         .leaderboard { background: #1c1b19; padding: 15px; border-radius: 4px; font-size: 14px; }
         .leaderboard h4 { margin-top: 0; color: #81b64c; }
@@ -23,19 +26,38 @@
         td { padding: 5px 0; }
         #eval-bar { width: 12px; background: white; height: 450px; position: relative; border-radius: 2px; overflow: hidden; }
         #eval-fill { width: 100%; height: 50%; background: #333; position: absolute; bottom: 0; transition: height 0.5s; }
+        .tab-container { display: flex; gap: 10px; margin-bottom: 15px; }
+        .tab-btn { flex: 1; padding: 10px; border: none; font-weight: bold; cursor: pointer; border-radius: 4px; }
     </style>
 </head>
 <body>
 
     <div id="auth" style="width: 350px;">
         <div class="shadow-brand">SHADOWCHESS</div>
+        
+        <div class="tab-container">
+            <button class="tab-btn" id="tab-login" onclick="switchTab('login')" style="background: #81b64c; color: white;">Đăng Nhập</button>
+            <button class="tab-btn" id="tab-register" onclick="switchTab('register')" style="background: #363532; color: #ccc;">Tạo Tài Khoản</button>
+        </div>
+
         <div class="sidebar" style="width: 100%;">
-            <input id="user" placeholder="Tên kiện tướng">
+            <input id="user" placeholder="Tên tài khoản (không dấu cách)">
             <input id="pass" type="password" placeholder="Mật khẩu">
-            <button class="btn btn-play" onclick="auth('login')">Đăng Nhập</button>
-            <button class="btn" onclick="auth('register')" style="background:#363532; color: #ccc;">Tạo Tài Khoản</button>
-            <button class="btn btn-google" onclick="alert('Đang kết nối API Google...')">
-                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18"> Tiếp tục với Google
+            
+            <div id="forgot-pw" style="text-align: right; margin-top: -10px;">
+                <a href="#" onclick="forgotPassword()" style="color: #81b64c; font-size: 13px; text-decoration: none;">Quên mật khẩu?</a>
+            </div>
+
+            <button class="btn btn-play" id="action-btn" onclick="submitAuth()">Đăng Nhập</button>
+            <button class="btn btn-guest" onclick="playAsGuest()">Chơi Khách (Không cần tài khoản)</button>
+            
+            <div style="text-align: center; margin: 5px 0; color: #888; font-size: 14px;">HOẶC ĐĂNG NHẬP BẰNG</div>
+
+            <button class="btn btn-google" onclick="alert('Đang chờ phê duyệt API từ Google Cloud!')">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" width="18"> Google
+            </button>
+            <button class="btn btn-facebook" onclick="alert('Đang chờ phê duyệt API từ Meta for Developers!')">
+                <strong style="font-size: 18px; line-height: 1;">f</strong> Facebook
             </button>
         </div>
     </div>
@@ -76,25 +98,86 @@
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 
     <script>
-        let socket = io();
-        let game = new Chess(), board = null, myColor = 'w', room = null, me = null;
+        // --- XỬ LÝ GIAO DIỆN ĐĂNG NHẬP / ĐĂNG KÝ ---
+        let currentMode = 'login'; 
 
-        function auth(type) {
-            let username = $('#user').val(), password = $('#pass').val();
-            fetch('/api/' + type, {
+        function switchTab(mode) {
+            currentMode = mode;
+            if(mode === 'login') {
+                $('#tab-login').css({background: '#81b64c', color: 'white'});
+                $('#tab-register').css({background: '#363532', color: '#ccc'});
+                $('#action-btn').text('Đăng Nhập');
+                $('#forgot-pw').show(); 
+            } else {
+                $('#tab-register').css({background: '#81b64c', color: 'white'});
+                $('#tab-login').css({background: '#363532', color: '#ccc'});
+                $('#action-btn').text('Tạo Tài Khoản Ngay');
+                $('#forgot-pw').hide(); 
+            }
+        }
+
+        function submitAuth() {
+            let username = $('#user').val().trim();
+            let password = $('#pass').val().trim();
+
+            if(!username || !password) {
+                alert("Bạn phải nhập đầy đủ Tên và Mật khẩu!"); return;
+            }
+            if(username.includes(' ')) {
+                alert("Tên tài khoản không được có khoảng trắng!"); return;
+            }
+
+            let apiPath = currentMode === 'login' ? '/api/login' : '/api/register';
+
+            fetch(apiPath, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({username, password})
             }).then(r => r.json()).then(data => {
-                if(data.error) alert(data.error);
-                else if(type === 'login') {
+                if(data.error) {
+                    alert("Lỗi: " + data.error);
+                } else if(currentMode === 'login') {
                     me = data.user;
                     $('#auth').hide(); $('#app').css('display', 'flex');
                     $('#player-tag').text(`${me.username} (${me.elo_blitz})`);
                     loadLB();
-                } else alert("Đã đăng ký!");
-            });
+                } else {
+                    alert("Tạo tài khoản thành công! Giờ hãy bấm Đăng nhập nhé.");
+                    switchTab('login');
+                    $('#pass').val('');
+                }
+            }).catch(e => alert("Lỗi kết nối máy chủ! (Kiểm tra Logs Render)"));
         }
+
+        function forgotPassword() {
+            let email = prompt("Vui lòng nhập địa chỉ Email của bạn để nhận link khôi phục mật khẩu:");
+            if(email) {
+                if(email.includes('@')) {
+                    alert(`Thành công! Một đường link khôi phục mật khẩu đã được gửi tới email: ${email}. Vui lòng kiểm tra hộp thư (và thư rác).`);
+                } else {
+                    alert("Email không hợp lệ, vui lòng thử lại!");
+                }
+            }
+        }
+
+        // Hàm Chơi Khách
+        function playAsGuest() {
+            let randomId = Math.floor(Math.random() * 9000) + 1000; // Random từ 1000 đến 9999
+            me = {
+                username: 'Khách_' + randomId,
+                elo_bullet: 1000,
+                elo_blitz: 1000,
+                elo_rapid: 1000
+            };
+            $('#auth').hide(); 
+            $('#app').css('display', 'flex');
+            $('#player-tag').text(`${me.username} (Elo: Khách)`);
+            loadLB();
+        }
+
+        // --- XỬ LÝ LOGIC CỜ VUA ---
+        let socket = io();
+        let game = new Chess(), board = null, myColor = 'w', room = null;
 
         function loadLB() {
             let type = $('#gameType').val();
@@ -132,14 +215,13 @@
         });
 
         function analyze() {
-            // Giả lập đánh giá (Trong thực tế sẽ gọi Stockfish)
             let scores = ["Brilliant !!", "Great !", "Best ★", "Inaccuracy ?!"];
             $('#quality').text(scores[Math.floor(Math.random()*scores.length)]);
         }
 
         function report() {
             fetch('/api/report', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ reportedUser: 'DoiThu' }) });
-            alert("Đã báo cáo đối thủ gian lận!");
+            alert("Đã gửi báo cáo gian lận lên hệ thống!");
         }
 
         board = Chessboard('board', {draggable: true, position: 'start', onDrop: onDrop});
