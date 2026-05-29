@@ -17,10 +17,12 @@ const io = new Server(server, { cors: { origin: "*" } });
 
 const JWT_SECRET = "shadow_secret_999";
 
-// KẾT NỐI DATABASE (Tạm thời dùng RAM nếu chưa có MongoDB Atlas)
-mongoose.connect("mongodb://localhost:27017/shadowchess").catch(() => {
-    console.log("⚠️ Cảnh báo: Đang chạy DB tạm trên RAM. Dữ liệu sẽ mất khi tắt CMD.");
-});
+// KẾT NỐI DATABASE (Có chống treo máy)
+const DB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/shadowchess";
+mongoose.connect(DB_URI, { 
+    serverSelectionTimeoutMS: 3000 // Nếu 3s không kết nối được DB sẽ báo lỗi ngay, không bị treo
+}).then(() => console.log('✅ Đã kết nối Database!'))
+  .catch(err => console.log('⚠️ Lỗi Database (Vẫn chạy RAM):', err.message));
 
 // THIẾT KẾ DATABASE CHO SHADOWCHESS
 const userSchema = new mongoose.Schema({
